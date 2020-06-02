@@ -1,0 +1,47 @@
+---
+title: "Anova tutorial"
+author: "Hyun Yong Jin"
+date: "6/1/2020"
+output: html_document
+---
+
+## modified from https://towardsdatascience.com/a-gentle-guide-to-statistics-in-r-ccb91cc1177e & https://rpubs.com/jtmock/tidy-stats-in-R
+
+```{r setup, include=FALSE}
+library(tidyverse)
+
+# example dataset from https://towardsdatascience.com/a-gentle-guide-to-statistics-in-r-ccb91cc1177e
+rawDf <- read.csv("ad_treatment.csv")
+dplyr::glimpse(rawDf)
+rawDf %>% group_by(drug_treatment, health_status)%>% count()
+
+# check for NA values of header mmse
+rawDf %>% summarize(na_count = sum(is.na(mmse)))
+
+#update types for each column for statistics (to factor)
+sumDf <- rawDf %>% mutate(
+  sex = factor(sex, labels = c("male", "female")),
+  drug_treatment = factor(drug_treatment, levels = c("Placebo", "Low dose", "High Dose")), 
+  health_status = factor(health_status, levels = c("Healthy", "Alzheimer's"))
+  )
+
+#now the three columns are <fct>
+dplyr::glimpse(sumDf)
+
+#anova
+# this gives main effects AND interactions
+ad_aov <- aov(mmse ~ sex * drug_treatment * health_status, data = sumDf)
+
+# this would give ONLY main effects
+ad_aov <- aov(mmse ~ sex + drug_treatment + health_status, data = sumDf)
+
+#call summary on anova to reveal stats
+summary(ad_aov)
+
+
+library(broom)
+#extract stats using tidy
+tidy_ad_aov <- tidy(ad_aov)
+tidy_ad_aov
+  
+```
